@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ros:humble-perception
+ARG BASE_IMAGE=ros:foxy
 
 # The following steps are based on the offical multi-stage build: https://github.com/IntelRealSense/librealsense/blob/master/scripts/Docker/Dockerfile
 #################################
@@ -21,7 +21,7 @@ RUN apt-get update \
     libgtk-3-dev \
     libglfw3-dev \
     libgl1-mesa-dev \
-    libglu1-mesa-dev \    
+    libglu1-mesa-dev \
     curl \
     python3 \
     python3-dev \
@@ -31,7 +31,7 @@ RUN apt-get update \
 WORKDIR /usr/src
 # Get the latest tag of remote repository: https://stackoverflow.com/a/12704727
 # Needs to be a single command as ENV can't be set from Bash command: https://stackoverflow.com/questions/34911622/dockerfile-set-env-to-result-of-command
-RUN export LIBRS_GIT_TAG=v2.51.1;\
+RUN export LIBRS_GIT_TAG=v2.50.0;\
     export LIBRS_VERSION=${LIBRS_VERSION:-${LIBRS_GIT_TAG#"v"}}; \
     curl https://codeload.github.com/IntelRealSense/librealsense/tar.gz/refs/tags/v${LIBRS_VERSION} -o librealsense.tar.gz; \
     tar -zxf librealsense.tar.gz; \
@@ -82,18 +82,24 @@ WORKDIR ${WS_DIR}
 RUN apt-get update -y \
  && apt-get install -y \
     ros-${ROS_DISTRO}-rviz2 \
+    ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-diagnostic-updater \
+    ros-${ROS_DISTRO}-image-transport \
+    ros-${ROS_DISTRO}-cv-bridge \
+    wget \
  && mkdir src \
  && cd src \
 # && git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-development \
- && wget "https://github.com/IntelRealSense/realsense-ros/archive/refs/tags/4.51.1.tar.gz" \
- && tar xzf 4.51.1.tar.gz \
+ && wget "https://github.com/IntelRealSense/realsense-ros/archive/refs/tags/4.0.4.tar.gz" \
+ && tar xzf *.tar.gz \
  && cd .. \
- && apt-get install -y python3-rosdep \
+ && apt-get install -y python3-rosdep
+RUN echo ROS_DISTRO: $ROS_DISTRO \
  && source /opt/ros/${ROS_DISTRO}/setup.bash \
  && rm /etc/ros/rosdep/sources.list.d/20-default.list \
  && rosdep init \
  && rosdep update \
- && rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} --skip-keys=librealsense2 -y \
+ && rosdep install -i --from-paths src --include-eol-distros --rosdistro ${ROS_DISTRO} --skip-keys=librealsense2 -y \
  && colcon build
 
 ENV DEBIAN_FRONTEND=dialog
