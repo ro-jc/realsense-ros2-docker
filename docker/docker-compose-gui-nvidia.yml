@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   realsense_ros2:
     extends:

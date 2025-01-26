@@ -49,8 +49,8 @@ RUN cd /usr/src/librealsense \
     -DCMAKE_BUILD_TYPE=Release ../ \
  && make -j$(($(nproc)-1)) all \
  && make install
- 
- ENV DEBIAN_FRONTEND=dialog
+
+ENV DEBIAN_FRONTEND=dialog
 
 ######################################
 #   librealsense Base Image Stage    #
@@ -94,6 +94,7 @@ RUN apt-get update -y \
  && tar xzf *.tar.gz \
  && cd .. \
  && apt-get install -y python3-rosdep
+
 RUN echo ROS_DISTRO: $ROS_DISTRO \
  && source /opt/ros/${ROS_DISTRO}/setup.bash \
  && rm /etc/ros/rosdep/sources.list.d/20-default.list \
@@ -102,6 +103,16 @@ RUN echo ROS_DISTRO: $ROS_DISTRO \
  && rosdep install -i --from-paths src --include-eol-distros --rosdistro ${ROS_DISTRO} --skip-keys=librealsense2 -y \
  && colcon build
 
+RUN echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="8086", ATTRS{idProduct}=="0b3a", MODE="0666", GROUP="plugdev"' \
+ >> /etc/udev/rules.d/99-realsense-camera.rules
+
+RUN apt-get update && apt-get install -y \
+    kmod \
+    libudev-dev
+
+RUN sudo apt-get install -y usbutils hwdata
+
 ENV DEBIAN_FRONTEND=dialog
 
-CMD [ "rs-enumerate-devices", "--compact" ]
+#CMD [ "rs-enumerate-devices", "--compact" ]
+CMD [ "/bin/bash", "-c", "source /opt/ros/${ROS_DISTRO}/setup.bash && source ${WS_DIR}/install/setup.bash && ros2 launch realsense2_camera rs_launch.py /camera:=/t265" ]
