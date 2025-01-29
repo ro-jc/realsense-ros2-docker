@@ -46,7 +46,8 @@ RUN cd /usr/src/librealsense \
     -DCMAKE_INSTALL_PREFIX=/opt/librealsense \    
     -DBUILD_GRAPHICAL_EXAMPLES=OFF \
     -DBUILD_PYTHON_BINDINGS:bool=true \
-    -DCMAKE_BUILD_TYPE=Release ../ \
+    -DCMAKE_BUILD_TYPE=Release  \
+    -DFORCE_RSUSB_BACKEND=TRUE ../ \
  && make -j$(($(nproc)-1)) all \
  && make install
 
